@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="ca">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Explorador NASA API</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23071013'/%3E%3Ccircle cx='32' cy='32' r='10' fill='%23f5b942'/%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="node_modules/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-loader" id="app-loader" role="status" aria-live="polite">
+      <div class="loader-mark"></div>
+      <div>
+        <strong>Carregant NASA Explorer</strong>
+        <p>Preparant dades, mapes i escena 3D...</p>
+      </div>
+    </div>
+
+    <main class="app-shell">
+      <section class="hero">
+        <div>
+          <p class="eyebrow">NASA Open APIs</p>
+          <h1>Explorador de dades de la NASA</h1>
+          <p class="intro">
+            Consulta la imatge astronòmica del dia, fotografies dels rovers de Mart i objectes propers a la Terra.
+          </p>
+        </div>
+      </section>
+
+      <nav class="tabs" aria-label="Seccions NASA">
+        <button class="tab active" type="button" data-view="dashboard">Dashboard</button>
+        <button class="tab" type="button" data-view="apod">APOD</button>
+        <button class="tab" type="button" data-view="gallery">Galeria</button>
+        <button class="tab" type="button" data-view="search">Cerca NASA</button>
+        <button class="tab" type="button" data-view="mars">Mart</button>
+        <button class="tab" type="button" data-view="neo">Asteroides</button>
+        <button class="tab" type="button" data-view="analytics">Gràfics</button>
+        <button class="tab" type="button" data-view="earth">Terra</button>
+        <button class="tab" type="button" data-view="solar">Sistema Solar</button>
+        <button class="tab" type="button" data-view="favorites">Favorits</button>
+      </nav>
+
+      <section class="view active" id="dashboard-view">
+        <div class="section-header">
+          <div>
+            <h2>Dashboard NASA</h2>
+            <p>Resum visual de les dades carregades al projecte.</p>
+          </div>
+          <button class="secondary-button" id="refresh-dashboard" type="button">Actualitza resum</button>
+        </div>
+        <div class="dashboard-grid">
+          <article class="dashboard-card dashboard-apod" id="dashboard-apod"></article>
+          <article class="dashboard-card" id="dashboard-neo"></article>
+          <article class="dashboard-card" id="dashboard-earth"></article>
+          <article class="dashboard-card" id="dashboard-favorites"></article>
+        </div>
+        <div class="dashboard-actions">
+          <button type="button" data-jump="search">Cerca imatges</button>
+          <button type="button" data-jump="analytics">Veure gràfics</button>
+          <button type="button" data-jump="earth">Terra en Directe</button>
+          <button type="button" data-jump="favorites">Favorits</button>
+        </div>
+      </section>
+
+      <section class="view" id="apod-view">
+        <div class="section-header">
+          <div>
+            <h2>Imatge astronòmica del dia</h2>
+            <p>Tria una data i recupera la publicació APOD.</p>
+          </div>
+          <form class="controls" id="apod-form">
+            <label>
+              Data
+              <input id="apod-date" type="date" />
+            </label>
+            <button type="submit">Cerca</button>
+          </form>
+        </div>
+        <div class="result" id="apod-result"></div>
+      </section>
+
+      <section class="view" id="gallery-view">
+        <div class="section-header">
+          <div>
+            <h2>Galeria APOD</h2>
+            <p>Mostra una seleccio d'imatges astronomiques recents.</p>
+          </div>
+          <form class="controls" id="gallery-form">
+            <label>
+              Elements
+              <select id="gallery-count">
+                <option value="7">7 dies</option>
+                <option value="14" selected>14 dies</option>
+                <option value="30">30 dies</option>
+              </select>
+            </label>
+            <button type="submit">Carrega</button>
+          </form>
+        </div>
+        <div class="grid result" id="gallery-result"></div>
+      </section>
+
+      <section class="view" id="mars-view">
+        <div class="section-header">
+          <div>
+            <h2>Imatges de Mart</h2>
+            <p>Cerca imatges reals a la NASA Image and Video Library.</p>
+          </div>
+          <form class="controls" id="mars-form">
+            <label>
+              Cerca
+              <input id="mars-query" type="search" value="Mars rover" />
+            </label>
+            <button type="submit">Cerca</button>
+          </form>
+        </div>
+        <div class="grid result" id="mars-result"></div>
+      </section>
+
+      <section class="view" id="search-view">
+        <div class="section-header">
+          <div>
+            <h2>Cerca NASA</h2>
+            <p>Busca imatges de missions, planetes, telescopis i descobriments.</p>
+          </div>
+          <form class="controls" id="search-form">
+            <label>
+              Tema
+              <input id="search-query" type="search" value="James Webb" />
+            </label>
+            <label>
+              Quantitat
+              <select id="search-count">
+                <option value="12">12</option>
+                <option value="24" selected>24</option>
+                <option value="36">36</option>
+              </select>
+            </label>
+            <button type="submit">Cerca</button>
+          </form>
+        </div>
+        <div class="search-tags" aria-label="Tags de cerca">
+          <button class="tag-button" type="button" data-tag="planet">Planeta</button>
+          <button class="tag-button" type="button" data-tag="moon">Lluna</button>
+          <button class="tag-button" type="button" data-tag="galaxy">Galaxia</button>
+          <button class="tag-button" type="button" data-tag="nebula">Nebulosa</button>
+          <button class="tag-button" type="button" data-tag="telescope">Telescopi</button>
+          <button class="tag-button" type="button" data-tag="spacecraft">Nau</button>
+          <button class="tag-button" type="button" data-tag="astronaut">Astronauta</button>
+          <button class="tag-button" type="button" data-tag="earth">Terra</button>
+          <button class="tag-button" type="button" data-tag="mars">Mart</button>
+          <button class="tag-button" type="button" data-tag="venus">Venus</button>
+          <button class="tag-button" type="button" data-tag="jupiter">Jupiter</button>
+          <button class="tag-button" type="button" data-tag="saturn">Saturn</button>
+          <button class="tag-button" type="button" data-tag="uranus">Uranus</button>
+          <button class="tag-button" type="button" data-tag="neptune">Neptune</button>
+          <button class="tag-button" type="button" data-tag="pluto">Pluto</button>
+          <button class="tag-button" type="button" data-tag="apollo">Apollo</button>
+          <button class="tag-button" type="button" data-tag="artemis">Artemis</button>
+          <button class="tag-button" type="button" data-tag="hubble">Hubble</button>
+          <button class="tag-button" type="button" data-tag="webb">Webb</button>
+          <button class="tag-button" type="button" data-tag="iss">ISS</button>
+          <button class="tag-button" type="button" data-tag="black hole">Forat negre</button>
+          <button class="tag-button" type="button" data-tag="supernova">Supernova</button>
+          <button class="tag-button" type="button" data-tag="comet">Cometa</button>
+          <button class="tag-button" type="button" data-tag="asteroid">Asteroide</button>
+          <button class="tag-button" type="button" data-tag="sun">Sol</button>
+          <button class="tag-button" type="button" data-tag="eclipse">Eclipsi</button>
+          <button class="tag-button" type="button" data-tag="launch">Llançament</button>
+          <button class="tag-button" type="button" data-tag="rover">Rover</button>
+          <button class="secondary-button clear-tags" id="clear-search-tags" type="button">Neteja tags</button>
+        </div>
+        <div class="search-history-panel">
+          <div class="mini-header">
+            <h3>Historial</h3>
+            <button class="secondary-button" id="clear-search-history" type="button">Neteja historial</button>
+          </div>
+          <div class="search-history" id="search-history"></div>
+        </div>
+        <div class="grid result" id="search-result"></div>
+      </section>
+
+      <section class="view" id="neo-view">
+        <div class="section-header">
+          <div>
+            <h2>Objectes propers a la Terra</h2>
+            <p>Consulta asteroides detectats en un interval de fins a set dies.</p>
+          </div>
+          <form class="controls" id="neo-form">
+            <label>
+              Inici
+              <input id="neo-start" type="date" />
+            </label>
+            <label>
+              Fi
+              <input id="neo-end" type="date" />
+            </label>
+            <button type="submit">Cerca</button>
+          </form>
+        </div>
+        <div class="stats-grid" id="neo-stats"></div>
+        <div class="result" id="neo-result"></div>
+      </section>
+
+      <section class="view" id="analytics-view">
+        <div class="section-header">
+          <div>
+            <h2>Gràfics NeoWs</h2>
+            <p>Visualitza activitat, risc i velocitat dels objectes propers a la Terra.</p>
+          </div>
+          <form class="controls" id="analytics-form">
+            <label>
+              Inici
+              <input id="analytics-start" type="date" />
+            </label>
+            <label>
+              Fi
+              <input id="analytics-end" type="date" />
+            </label>
+            <button type="submit">Actualitza</button>
+          </form>
+        </div>
+        <div class="chart-layout">
+          <article class="chart-panel wide">
+            <div class="mini-header">
+              <h3>Objectes per dia</h3>
+              <span class="chart-note">Barres + risc</span>
+            </div>
+            <div class="chart-box"><canvas id="daily-chart"></canvas></div>
+          </article>
+          <article class="chart-panel">
+            <div class="mini-header">
+              <h3>Risc</h3>
+              <span class="chart-note">Donut</span>
+            </div>
+            <div class="chart-box small"><canvas id="risk-chart"></canvas></div>
+            <div class="legend" id="risk-legend"></div>
+          </article>
+          <article class="chart-panel wide risk-detail-panel">
+            <div class="mini-header">
+              <h3>Objectes potencialment perillosos</h3>
+              <span class="chart-note" id="hazardous-count">0 detectats</span>
+            </div>
+            <div class="stats-grid compact-stats" id="hazardous-stats"></div>
+            <div class="hazard-table" id="hazardous-table"></div>
+          </article>
+          <article class="chart-panel wide">
+            <div class="mini-header">
+              <h3>Velocitat vs distància</h3>
+              <span class="chart-note">Dispersió</span>
+            </div>
+            <div class="chart-box"><canvas id="scatter-chart"></canvas></div>
+          </article>
+          <article class="chart-panel">
+            <div class="mini-header">
+              <h3>Diàmetres</h3>
+              <span class="chart-note">Top 8</span>
+            </div>
+            <div class="chart-box"><canvas id="diameter-chart"></canvas></div>
+          </article>
+          <article class="chart-panel wide">
+            <div class="mini-header">
+              <h3>Velocitat mitjana</h3>
+              <span class="chart-note">Línia</span>
+            </div>
+            <div class="chart-box short"><canvas id="speed-line-chart"></canvas></div>
+          </article>
+          <article class="chart-panel wide">
+            <div class="mini-header">
+              <h3>Top velocitat</h3>
+              <span class="chart-note">km/h</span>
+            </div>
+            <div class="ranking-list" id="speed-ranking"></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="view" id="earth-view">
+        <div class="section-header">
+          <div>
+            <h2>Terra en Directe</h2>
+            <p>Esdeveniments naturals actius i recents de NASA EONET.</p>
+          </div>
+          <form class="controls" id="earth-form">
+            <label>
+              Categoria
+              <select id="earth-category">
+                <option value="">Totes</option>
+                <option value="wildfires">Incendis</option>
+                <option value="severeStorms">Tempestes</option>
+                <option value="volcanoes">Volcans</option>
+                <option value="floods">Inundacions</option>
+                <option value="seaLakeIce">Gel</option>
+                <option value="dustHaze">Pols i boira</option>
+              </select>
+            </label>
+            <label>
+              Estat
+              <select id="earth-status">
+                <option value="open" selected>Actius</option>
+                <option value="all">Tots</option>
+              </select>
+            </label>
+            <label>
+              Regió
+              <select id="earth-region">
+                <option value="global" selected>Global</option>
+                <option value="europe">Europa</option>
+                <option value="africa">Àfrica</option>
+                <option value="asia">Àsia</option>
+                <option value="northAmerica">Amèrica Nord</option>
+                <option value="southAmerica">Amèrica Sud</option>
+                <option value="oceania">Oceania</option>
+              </select>
+            </label>
+            <label>
+              Dies
+              <select id="earth-days">
+                <option value="7">7</option>
+                <option value="30" selected>30</option>
+                <option value="90">90</option>
+              </select>
+            </label>
+            <button type="submit">Actualitza</button>
+          </form>
+        </div>
+        <div class="stats-grid" id="earth-stats"></div>
+        <div class="earth-dashboard">
+          <section class="earth-map-panel">
+            <div id="earth-map" aria-label="Mapa d'esdeveniments naturals"></div>
+          </section>
+          <aside class="earth-side-panel">
+            <article class="chart-panel">
+              <div class="mini-header">
+                <h3>Categories</h3>
+                <span class="chart-note">EONET</span>
+              </div>
+              <div class="chart-box small"><canvas id="earth-category-chart"></canvas></div>
+            </article>
+            <article class="earth-events-panel">
+              <div class="mini-header">
+                <h3>Esdeveniments</h3>
+                <span class="chart-note" id="earth-count">0</span>
+              </div>
+              <div class="earth-event-list" id="earth-event-list"></div>
+            </article>
+          </aside>
+        </div>
+      </section>
+
+      <section class="view" id="solar-view">
+        <div class="section-header">
+          <div>
+            <h2>Sistema Solar 3D</h2>
+            <p>Planetari interactiu amb òrbites, controls i cerca NASA per planeta.</p>
+          </div>
+          <div class="solar-controls">
+            <label>
+              Velocitat
+              <input id="solar-speed" type="range" min="0" max="6" step="0.5" value="1.5" />
+            </label>
+            <button class="secondary-button" id="toggle-orbits" type="button">Òrbites</button>
+            <button class="secondary-button" id="solar-reset" type="button">Reinicia càmera</button>
+          </div>
+        </div>
+        <div class="solar-layout">
+          <div class="solar-stage" id="solar-stage"></div>
+          <aside class="solar-panel" id="solar-panel">
+            <span class="meta">Sistema Solar</span>
+            <h3>Selecciona un planeta</h3>
+            <p>Clica un planeta de l'escena per veure dades i llançar una cerca NASA relacionada.</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="view" id="favorites-view">
+        <div class="section-header">
+          <div>
+            <h2>Favorits</h2>
+            <p>Imatges guardades en aquest navegador.</p>
+          </div>
+          <button class="secondary-button" id="clear-favorites" type="button">Neteja favorits</button>
+        </div>
+        <div class="grid result" id="favorites-result"></div>
+      </section>
+    </main>
+
+    <dialog class="detail-modal" id="detail-modal">
+      <button class="modal-close" id="modal-close" type="button" aria-label="Tanca">x</button>
+      <div class="modal-content" id="modal-content"></div>
+    </dialog>
+
+    <template id="loading-template">
+      <div class="state">Carregant dades de la NASA...</div>
+    </template>
+
+    <script src="config.local.js"></script>
+    <script src="node_modules/chart.js/dist/chart.umd.js"></script>
+    <script src="node_modules/leaflet/dist/leaflet.js"></script>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "./node_modules/three/build/three.module.min.js"
+        }
+      }
+    </script>
+    <script type="module">
+      import * as THREE from "three";
+      import { OrbitControls } from "./node_modules/three/examples/jsm/controls/OrbitControls.js";
+      window.THREE = THREE;
+      window.OrbitControls = OrbitControls;
+    </script>
+    <script src="app.js"></script>
+  </body>
+</html>

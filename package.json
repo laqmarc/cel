@@ -1,0 +1,13 @@
+{
+  "name": "nasa-api-explorer",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "chart.js": "^4.4.9",
+    "leaflet": "^1.9.4",
+    "three": "^0.164.1"
+  }
+}
