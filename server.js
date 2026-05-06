@@ -25,6 +25,15 @@ const server = http.createServer(async (req, res) => {
   try {
     const requestUrl = new URL(req.url, `http://${req.headers.host}`);
 
+    if (requestUrl.pathname === "/health" || requestUrl.pathname === "/api/health") {
+      sendJson(res, 200, {
+        ok: true,
+        service: "nasa-api-explorer",
+        hasNasaApiKey: Boolean(process.env.NASA_API_KEY || readLocalApiKey()),
+      });
+      return;
+    }
+
     if (requestUrl.pathname.startsWith("/api/nasa/")) {
       await proxyNasaApi(requestUrl, res);
       return;
@@ -150,14 +159,18 @@ function getLocalApiKey() {
     return process.env.NASA_API_KEY;
   }
 
+  return readLocalApiKey() || "DEMO_KEY";
+}
+
+function readLocalApiKey() {
   const configPath = path.join(ROOT, "config.local.js");
 
   try {
     const config = fs.readFileSync(configPath, "utf8");
     const match = config.match(/NASA_API_KEY\s*=\s*["']([^"']+)["']/);
-    return match?.[1] || "DEMO_KEY";
+    return match?.[1] || "";
   } catch {
-    return "DEMO_KEY";
+    return "";
   }
 }
 

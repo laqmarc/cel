@@ -2174,7 +2174,9 @@ function renderNeoCard(item) {
 
 async function request(path, params = {}) {
   const url = new URL(`${NASA_BASE_URL}${path}`, window.location.origin);
-  url.searchParams.set("api_key", state.apiKey);
+  if (state.apiKey !== DEFAULT_API_KEY) {
+    url.searchParams.set("api_key", state.apiKey);
+  }
 
   Object.entries(params).forEach(([key, value]) => {
     if (value !== undefined && value !== null && value !== "") {

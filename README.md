@@ -24,6 +24,73 @@ http://127.0.0.1:5501/index.html
 
 No facis servir Live Server per aquesta app: el projecte necessita `server.js` per fer de proxy cap a les APIs externes i evitar problemes de CORS.
 
+## Desplegament a Plesk
+
+Aquesta app no pot funcionar nomes com a fitxers estatics, perque el frontend crida rutes locals com:
+
+```text
+/api/nasa/*
+/api/images/*
+/api/jpl/*
+/api/eonet/*
+/api/texture
+```
+
+Aquestes rutes les crea ``. A Plesk has de configurar-la com a aplicacio Node.js.
+
+Passos recomanats:
+
+1. Puja tot el projecte excepte `node_modules`.
+2. A Plesk, activa Node.js per al domini.
+3. Defineix:
+   - Application root: carpeta del projecte.
+   - Document root: carpeta del projecte.
+   - Application startup file: `server.js`.
+4. Executa:
+
+```bash
+npm install
+```
+
+5. Afegeix una variable d'entorn a Plesk:
+
+```text
+NASA_API_KEY=la-teva-clau
+```
+
+6. Reinicia l'aplicacio Node.js des de Plesk.
+
+Comprovacions:
+
+```text
+https://el-teu-domini.com/health
+```
+
+Ha de respondre:
+
+```json
+{
+  "ok": true,
+  "service": "nasa-api-explorer",
+  "hasNasaApiKey": true
+}
+```
+
+Despres prova:
+
+```text
+https://el-teu-domini.com/api/nasa/planetary/apod?date=2024-01-15
+```
+
+Si `/health` no respon, Plesk esta servint la web com a estatica o Node no esta arrencat.
+
+Si `/health` respon pero `/api/nasa/...` falla, revisa:
+
+- variable `NASA_API_KEY`
+- logs de Node a Plesk
+- connexio sortint HTTPS del servidor
+- que el hosting permeti crides externes cap a `api.nasa.gov`, `images-api.nasa.gov`, `ssd-api.jpl.nasa.gov`, `eonet.gsfc.nasa.gov` i `www.solarsystemscope.com`
+
 ## Configuracio API
 
 La clau de NASA es carrega des de:
